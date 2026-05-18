@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenFlow // Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-main: 'Inter', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        body { font-family: var(--font-main); transition: background-color 0.3s ease; }
+        .mono { font-family: var(--font-mono); }
+        
+        [data-theme="dark"] {
+            --bg: #0F172A; --surface: #1E293B; --text: #F1F5F9; --text-mute: #94A3B8; --border: #334155;
+        }
+        [data-theme="light"] {
+            --bg: #F8FAFC; --surface: #FFFFFF; --text: #1E293B; --text-mute: #64748B; --border: #E2E8F0;
+        }
+        body { background-color: var(--bg); color: var(--text); }
+        .surface { background-color: var(--surface); border: 1px solid var(--border); }
+        .text-mute { color: var(--text-mute); }
+        
+        .stagger-in {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 md:p-12">
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" 
+            class="fixed top-6 right-6 p-2 surface rounded-full hover:scale-110 transition-transform z-50">
+        🌓
+    </button>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header & Search -->
+        <header class="text-center mb-16 space-y-6">
+            <h1 id="welcome-text" class="text-4xl font-semibold tracking-tight opacity-0 transition-all duration-700">...</h1>
+            <div class="relative max-w-2xl mx-auto group">
+                <input type="text" id="search-input" placeholder="Search anything... (Press / to focus)" 
+                       class="w-full px-6 py-4 surface rounded-2xl text-lg outline-none focus:ring-2 ring-indigo-500 transition-all shadow-sm" />
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                    <span class="px-2 py-1 text-xs surface rounded border border-slate-500 text-mute mono">⌘ K</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main id="links-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Categories will be injected here -->
+        </main>
+
+        <!-- Bottom Status -->
+        <footer class="mt-20 pt-6 border-t border-slate-500/20 flex justify-between items-center text-mute mono text-xs">
+            <div id="clock">00:00:00</div>
+            <div class="opacity-60">
+                ZenFlow v1.0 // Designed by 二月
+            </div>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        let config = {};
+
+        async function init() {
+            try {
+                // Read from global variable injected by config.js
+                config = window.ZENFLOW_CONFIG;
+                
+                renderWelcome();
+                renderLinks();
+                setupSearch();
+                startClock();
+                
+                // Initial animation trigger
+                document.getElementById('welcome-text').classList.remove('opacity-opacity-0');
+                document.getElementById('welcome-text').classList.add('stagger-in');
+            } catch (e) {
+
+
+                console.error("Failed to load config:", e);
+                document.getElementById('welcome-text').innerText = "Error loading configuration";
+            }
+        }
+
+        function renderWelcome() {
+            const hour = new Date().getHours();
+            let msg = config.user.welcome_messages.evening;
+            if (hour < 12) msg = config.user.welcome_messages.morning;
+            else if (hour < 18) msg = config.user.welcome_messages.afternoon;
+            
+            document.getElementById('welcome-text').innerText = msg;
+        }
+
+        function renderLinks() {
+            const grid = document.getElementById('links-grid');
+            grid.innerHTML = config.categories.map((cat, catIdx) => `
+                <section class="space-y-4 stagger-in" style="animation-delay: ${catIdx * 150}ms">
+                    <h2 class="text-xs font-medium uppercase tracking-widest text-mute px-2">${cat.name}</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        ${cat.links.map(link => `
+                            <a href="${link.url}" target="_blank" class="surface p-4 rounded-xl hover:-translate-y-1 transition-all group">
+                                <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">${link.icon}</div>
+                                <div class="text-sm font-medium">${link.name}</div>
+                            </a>
+                        `).join('')}
+                    </div>
+                </section>
+            `).join('');
+        }
+
+        function setupSearch() {
+            const input = document.getElementById('search-input');
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const query = input.value.trim();
+                    if (!query) return;
+
+                    // Check for shortcuts (e.g., /gh search term)
+                    const shortcutMatch = query.match(/^\/([a-z]+)\s*(.*)/);
+                    if (shortcutMatch) {
+                        const [_, key, term] = shortcutMatch;
+                        const url = config.search_engines.shortcuts[key];
+                        if (url) {
+                            window.open(url + encodeURIComponent(term), '_blank');
+                            return;
+                        }
+                    }
+                    
+                    // Default search
+                    window.open(config.search_engines.default + encodeURIComponent(query), '_blank');
+                }
+            });
+
+            // Shortcut to focus search
+            window.addEventListener('keydown', (e) => {
+                if (e.key === '/' && document.activeElement !== input) {
+                    e.preventDefault();
+                    input.focus();
+                }
+            });
+        }
+
+        function startClock() {
+            const clockEl = document.getElementById('clock');
+            const update = () => {
+                clockEl.innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+            };
+            setInterval(update, 1000);
+            update();
+        }
+
+
+        // Theme Toggle Logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+        });
+
+        init();
+    </script>
+</body>
+</html>

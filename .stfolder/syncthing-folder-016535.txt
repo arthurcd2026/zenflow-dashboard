@@ -1,0 +1,5 @@
+# This directory is a Syncthing folder marker.
+# Do not delete.
+
+folderID: ff2e4-dz2vu
+created: 2026-05-19T00:51:45+08:00
