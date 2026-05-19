@@ -38,8 +38,7 @@ window.ZENFLOW_CONFIG = {
         { "name": "Discord", "url": "https://discord.com", "icon": "🎮" },
         { "name": "Twitter", "url": "https://twitter.com", "icon": "🐦" },
         { "name": "YouTube", "url": "https://youtube.com", "icon": "📺" },
-        { "name": "Slack", "url": "https://slack.com", "icon": "💬" },
-        { "name": "Settings", "url": "#", "icon": "⚙️" }
+        { "name": "Slack", "url": "https://slack.com", "icon": "💬" }
       ]
     }
   ],

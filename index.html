@@ -32,14 +32,76 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Settings Modal Styles */
+        #settings-modal {
+            backdrop-filter: blur(8px);
+            transition: opacity 0.2s ease;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+        #settings-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #settings-modal.active .modal-content {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="min-h-screen p-6 md:p-12">
-    <!-- Theme Toggle -->
-    <button id="theme-toggle" 
-            class="fixed top-6 right-6 p-2 surface rounded-full hover:scale-110 transition-transform z-50">
-        🌓
+    <!-- Settings Button (Replaced Theme Toggle) -->
+    <button id="settings-btn" 
+            class="fixed top-6 right-6 p-2 surface rounded-full hover:scale-110 transition-transform z-50 text-xl">
+        ⚙️
     </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="absolute inset-0 bg-slate-900/60" onclick="toggleSettings()"></div>
+        <div class="modal-content surface w-full max-w-md rounded-3xl p-8 relative z-10 shadow-2xl">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-semibold">Settings</h3>
+                <button onclick="toggleSettings()" class="text-mute hover:text-text text-2xl">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Theme Section -->
+                <div class="space-y-3">
+                    <label class="text-xs font-medium uppercase tracking-widest text-mute">Appearance</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTheme('dark')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Dark</button>
+                        <button onclick="setTheme('light')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Light</button>
+                        <button onclick="setTheme('system')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">System</button>
+                    </div>
+                </div>
+
+                <!-- Search Engine Section -->
+                <div class="space-y-3">
+                    <label class="text-xs font-medium uppercase tracking-widest text-mute">Default Search Engine</label>
+                    <select id="search-engine-select" onchange="setSearchEngine(this.value)" 
+                            class="w-full p-3 surface rounded-xl outline-none focus:ring-2 ring-indigo-500 transition-all text-sm">
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+
+                <!-- UI Toggles -->
+                <div class="space-y-3">
+                    <label class="text-xs font-medium uppercase tracking-widest text-mute">UI Options</label>
+                    <div class="flex items-center justify-between surface p-3 rounded-xl">
+                        <span class="text-sm">Show Footer Clock</span>
+                        <input type="checkbox" id="clock-toggle" onchange="toggleClock(this.checked)" class="w-4 h-4 accent-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-500/20 text-center">
+                <p class="text-xs text-mute mono">ZenFlow v1.1 // Local Settings Enabled</p>
+            </div>
+        </div>
+    </div>
 
     <div class="max-w-5xl mx-auto">
         <!-- Header & Search -->
@@ -60,10 +122,10 @@
         </main>
 
         <!-- Bottom Status -->
-        <footer class="mt-20 pt-6 border-t border-slate-500/20 flex justify-between items-center text-mute mono text-xs">
+        <footer id="footer-status" class="mt-20 pt-6 border-t border-slate-500/20 flex justify-between items-center text-mute mono text-xs">
             <div id="clock">00:00:00</div>
             <div class="opacity-60">
-                ZenFlow v1.0 // Designed by 二月
+                ZenFlow v1.1 // Designed by 二月
             </div>
         </footer>
     </div>
@@ -74,20 +136,17 @@
 
         async function init() {
             try {
-                // Read from global variable injected by config.js
                 config = window.ZENFLOW_CONFIG;
                 
+                loadStoredSettings();
                 renderWelcome();
                 renderLinks();
                 setupSearch();
                 startClock();
                 
-                // Initial animation trigger
                 document.getElementById('welcome-text').classList.remove('opacity-opacity-0');
                 document.getElementById('welcome-text').classList.add('stagger-in');
             } catch (e) {
-
-
                 console.error("Failed to load config:", e);
                 document.getElementById('welcome-text').innerText = "Error loading configuration";
             }
@@ -127,7 +186,6 @@
                     const query = input.value.trim();
                     if (!query) return;
 
-                    // Check for shortcuts (e.g., /gh search term)
                     const shortcutMatch = query.match(/^\/([a-z]+)\s*(.*)/);
                     if (shortcutMatch) {
                         const [_, key, term] = shortcutMatch;
@@ -138,12 +196,11 @@
                         }
                     }
                     
-                    // Default search
-                    window.open(config.search_engines.default + encodeURIComponent(query), '_blank');
+                    const preferredEngine = localStorage.getItem('zenflow-search-engine') || config.search_engines.default;
+                    window.open(preferredEngine + encodeURIComponent(query), '_blank');
                 }
             });
 
-            // Shortcut to focus search
             window.addEventListener('keydown', (e) => {
                 if (e.key === '/' && document.activeElement !== input) {
                     e.preventDefault();
@@ -161,14 +218,66 @@
             update();
         }
 
+        // --- Settings Logic ---
 
-        // Theme Toggle Logic
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-        });
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            setTimeout(() => modal.classList.toggle('active'), 10);
+        }
+
+        function setTheme(theme) {
+            if (theme === 'system') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            localStorage.setItem('zenflow-theme', theme);
+        }
+
+        function setSearchEngine(url) {
+            localStorage.setItem('zenflow-search-engine', url);
+        }
+
+        function toggleClock(show) {
+            const footer = document.getElementById('footer-status');
+            footer.style.display = show ? 'flex' : 'none';
+            localStorage.setItem('zenflow-show-clock', show);
+        }
+
+        function loadStoredSettings() {
+            // Theme
+            const savedTheme = localStorage.getItem('zenflow-theme') || 'dark';
+            setTheme(savedTheme);
+
+            // Search Engine Select
+            const select = document.getElementById('search-engine-select');
+            const engines = {
+                'Google': config.search_engines.default,
+                'GitHub': config.search_engines.shortcuts.gh,
+                'arXiv': config.search_engines.shortcuts.ar,
+                'Bing': config.search_engines.shortcuts.b
+            };
+            
+            select.innerHTML = Object.entries(engines).map(([name, url]) => 
+                `<option value="${url}">${name}</option>`
+            ).join('');
+            
+            const savedEngine = localStorage.getItem('zenflow-search-engine');
+            if (savedEngine) {
+                select.value = savedEngine;
+            } else {
+                select.value = config.search_engines.default;
+            }
+
+            // Clock
+            const showClock = localStorage.getItem('zenflow-show-clock') !== 'false';
+            document.getElementById('clock-toggle').checked = showClock;
+            toggleClock(showClock);
+        }
+
+        document.getElementById('settings-btn').addEventListener('click', toggleSettings);
 
         init();
     </script>
