@@ -10,8 +10,9 @@
         :root {
             --font-main: 'Inter', system-ui, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
+            --base-font-size: 16px;
         }
-        body { font-family: var(--font-main); transition: background-color 0.3s ease; }
+        body { font-family: var(--font-main); transition: background-color 0.3s ease; font-size: var(--base-font-size); }
         .mono { font-family: var(--font-mono); }
         
         [data-theme="dark"] {
@@ -75,6 +76,16 @@
                         <button onclick="setTheme('dark')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Dark</button>
                         <button onclick="setTheme('light')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Light</button>
                         <button onclick="setTheme('system')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">System</button>
+                    </div>
+                </div>
+
+                <!-- Font Size Section -->
+                <div class="space-y-3">
+                    <label class="text-xs font-medium uppercase tracking-widest text-mute">Font Size</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setFontSize('small')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Small</button>
+                        <button onclick="setFontSize('medium')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Medium</button>
+                        <button onclick="setFontSize('large')" class="p-2 surface rounded-lg text-sm hover:ring-2 ring-indigo-500 transition-all">Large</button>
                     </div>
                 </div>
 
@@ -236,6 +247,16 @@
             localStorage.setItem('zenflow-theme', theme);
         }
 
+        function setFontSize(size) {
+            const sizes = {
+                'small': '14px',
+                'medium': '16px',
+                'large': '18px'
+            };
+            document.documentElement.style.setProperty('--base-font-size', sizes[size]);
+            localStorage.setItem('zenflow-font-size', size);
+        }
+
         function setSearchEngine(url) {
             localStorage.setItem('zenflow-search-engine', url);
         }
@@ -250,6 +271,10 @@
             // Theme
             const savedTheme = localStorage.getItem('zenflow-theme') || 'dark';
             setTheme(savedTheme);
+
+            // Font Size
+            const savedSize = localStorage.getItem('zenflow-font-size') || 'medium';
+            setFontSize(savedSize);
 
             // Search Engine Select
             const select = document.getElementById('search-engine-select');
