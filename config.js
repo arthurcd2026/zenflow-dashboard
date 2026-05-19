@@ -17,7 +17,8 @@ window.ZENFLOW_CONFIG = {
         { "name": "Cloudflare", "url": "https://cloudflare.com", "icon": "☁️" },
         { "name": "Docker", "url": "https://hub.docker.com", "icon": "🐳" },
         { "name": "Google AI Studio", "url": "https://aistudio.google.com", "icon": "🤖" },
-        { "name": "ping0.cc", "url": "https://ping0.cc/", "icon": "🚀" }
+        { "name": "ping0.cc", "url": "https://ping0.cc/", "icon": "🚀" },
+        { "name": "AI OCR", "url": "https://www.aiocr.icu/", "icon": "🔍" }
       ]
     },
     {
