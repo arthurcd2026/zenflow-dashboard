@@ -19,6 +19,7 @@ window.ZENFLOW_CONFIG = {
         { "name": "Google AI Studio", "url": "https://aistudio.google.com", "icon": "🤖" },
         { "name": "Gemini", "url": "https://gemini.google.com", "icon": "♊" },
         { "name": "ping0.cc", "url": "https://ping0.cc/", "icon": "🚀" },
+        { "name": "ipleak.net", "url": "https://ipleak.net/", "icon": "🕵️" },
         { "name": "AI OCR", "url": "https://www.aiocr.icu/", "icon": "🔍" }
       ]
     },
