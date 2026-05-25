@@ -39,6 +39,7 @@ window.ZENFLOW_CONFIG = {
       "links": [
         { "name": "Discord", "url": "https://discord.com", "icon": "🎮" },
         { "name": "Twitter", "url": "https://twitter.com", "icon": "🐦" },
+        { "name": "Reddit", "url": "https://reddit.com", "icon": "👽" },
         { "name": "YouTube", "url": "https://youtube.com", "icon": "📺" },
         { "name": "Slack", "url": "https://slack.com", "icon": "💬" }
       ]
