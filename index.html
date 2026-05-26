@@ -204,12 +204,14 @@
                         const url = config.search_engines.shortcuts[key];
                         if (url) {
                             window.open(url + encodeURIComponent(term), '_blank');
+                            input.value = '';
                             return;
                         }
                     }
                     
                     const preferredEngine = localStorage.getItem('zenflow-search-engine') || config.search_engines.default;
                     window.open(preferredEngine + encodeURIComponent(query), '_blank');
+                    input.value = '';
                 }
             });
 
